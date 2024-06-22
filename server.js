@@ -16,10 +16,12 @@ app.use(express.json());
 // Import the router
 const accountRoute = require("./src/routers/Account.routers");
 const eventRoute = require("./src/routers/Event.routers");
+const deckRoute = require("./src/routers/Deck.routers");
 
 // Use the router as middleware
 app.use("/api/account", accountRoute);
 app.use("/api/event", eventRoute);
+app.use("/api/deck", deckRoute);
 
 // Database connection
 mongoose

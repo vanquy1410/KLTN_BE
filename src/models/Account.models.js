@@ -25,7 +25,11 @@ const AccountSchema = new Schema({
     Email: {
         type: String,
         required: true
-    }
+    },
+    decks: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Deck'
+    }]
 });
 
 const Account = mongoose.model("Account", AccountSchema, "Account");
