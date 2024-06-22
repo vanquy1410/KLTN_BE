@@ -1,19 +1,24 @@
 const express = require("express");
+
 const accountController = require("../controllers/Account.controller");
 
 const router = express.Router();
 
-// Route to find all accounts
-router.get("/findall", accountController.findAll);
+const { validateBody, validateParam, schemas } = require('../helpers/routerHelper')
 
-// Route to get a single account by Email
-router.get("/getOne/:Email", accountController.getOne);
 
-// Route to add a new account
-router.post("/addAccount", accountController.addAccount);
+
+router.route('/')
+    .get(accountController.findAll)
+    .post(validateBody(schemas.accountSchema), accountController.newAccount)
+
+router.route('/:id')
+    .get(validateParam(schemas.idSchema, 'id'), accountController.getOne)
+    .put(validateParam(schemas.idSchema, 'id'), validateBody(schemas.accountSchema), accountController.replaceAccount)
+    .patch(validateParam(schemas.idSchema, 'id'), validateBody(schemas.accountOptionalSchema), accountController.updateAccount)
 
 // Route to update an account by Email
-router.put("/updateAccount/:Email", accountController.updateAccountByEmail);
+router.put("/updateAccount/:Email", accountController.updateAccount);
 
 // Route to delete an account by Email
 router.delete("/deleteAccount/:Email", accountController.deleteAccount);
@@ -21,10 +26,10 @@ router.delete("/deleteAccount/:Email", accountController.deleteAccount);
 // Route to change the password of an account
 router.put("/changePassword/:Email", accountController.changePassword);
 
-// Route to get all decks of an account
-router.get("/:Email/decks", accountController.getAccountDecks);
 
-// Route to add a new deck to an account
-router.post("/:Email/decks", accountController.newAccountDeck);
+
+router.route('/:id/decks')
+    .get(validateParam(schemas.idSchema, 'id'), accountController.getAccountDecks)
+    .post(validateParam(schemas.idSchema, 'id'), validateBody(schemas.deckSchema), accountController.newAccountDeck)
 
 module.exports = router;

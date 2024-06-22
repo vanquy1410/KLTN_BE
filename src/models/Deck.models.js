@@ -2,17 +2,17 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const DeckSchema = new Schema({
-    Name: {
+    name: {
         type: String
     },
-    Description: {
+    description: {
         type: String
     },
-    Total: {
+    total: {
         type: Number,
         default: 0
     },
-    Owner: {
+    owner: {
         type: Schema.Types.ObjectId,
         ref: 'Account'
     }

@@ -1,5 +1,11 @@
 const Account = require("../models/Account.models");
+const Deck = require("../models/Deck.models");
 const bcrypt = require("bcrypt");
+
+const Joi = require('@hapi/joi')
+const idSchema = Joi.object().keys({
+id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
+})
 
 const findAll = async (req, res) => {
     try {
@@ -11,142 +17,73 @@ const findAll = async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 };
+
 const getOne = async (req, res) => {
-    const { Email } = req.params;
-    try {
-        const accont = await Account.findOne({ Email: Email });
-        if (!accont) {
-            return res.status(404).json({ error: "Account not found" });
-        }
-        res.status(200).json(accont);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Server error" });
-    }
+    const { id } = req.value.params; // Corrected line
+
+    const account = await Account.findById(id);
+
+    return res.status(200).json({ account });
 };
+
 const getAccountDecks = async (req, res, next) => {
-    const { Email } = req.value.params;
+    const { id } = req.params; // Correctly access params directly from req
 
     try {
-        // Assuming Account model has a reference to Decks similar to the User model example
-        const account = await Account.findOne({ Email: Email }).populate('decks');
-
+        // Get user
+        const account = await Account.findById(id).populate('decks');
         if (!account) {
             return res.status(404).json({ error: "Account not found" });
         }
 
         return res.status(200).json({ decks: account.decks });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Server error" });
+        next(error);  // Pass error to error handling middleware
     }
 };
+
 const newAccountDeck = async (req, res, next) => {
-    const { Email } = req.value.params;
+    const { id } = req.params
 
     // Create a new deck
-    const newDeck = new Deck(req.value.body);
+    const newDeck = new Deck(req.body)
 
     // Get account
-    const account = await Account.findOne({ Email: Email });
-
-    if (!account) {
-        return res.status(404).json({ error: "Account not found" });
-    }
+    const account = await Account.findById(id)
 
     // Assign account as a deck's owner
-    newDeck.owner = account;
+    newDeck.owner = account
 
     // Save the deck
-    await newDeck.save();
+    await newDeck.save()
 
     // Add deck to account's decks array 'decks'
-    account.decks.push(newDeck._id);
+    account.decks.push(newDeck._id)
 
-    // Save the account
-    await account.save();
+    // Save the user
+    await account.save()
 
-    res.status(201).json({ deck: newDeck });
-};
+    res.status(201).json({deck: newDeck})
+}
 
-const replaceAccount = async (req, res, next) => {
-    const { Email } = req.value.params;
+const newAccount = async (req, res, next) => {
+    const newAccount = new Account(req.value.body)
 
-    const newAccountData = req.value.body;
+    await newAccount.save()
 
-    try {
-        const result = await Account.findOneAndUpdate({ Email: Email }, newAccountData, { new: true });
+    return res.status(201).json({account: newAccount})
+}
 
-        if (!result) {
-            return res.status(404).json({ error: "Account not found" });
-        }
+const updateAccount = async (req, res) => {
+    // number of fields
+    const { id } = req.value.params
 
-        return res.status(200).json({ success: true, account: result });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Server error" });
-    }
-};
+    const newAccount = req.value.body
 
-const addAccount = async (req, res) => {
-    const { UserAccount, Email, Password, Role, PhoneNumber, Address } = req.body;
-    try {
-        const hashedPassword = await bcrypt.hash(Password, 10);
-        const account = new Account({
-            UserAccount: UserAccount,
-            Email: Email,
-            Password: hashedPassword,
-            Role: Role, // Added Role
-            PhoneNumber: PhoneNumber, // Added PhoneNumber
-            Address: Address // Added Address
-        });
-        await account.save();
-        res.status(200).json(account);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Server error" });
-    }
-};
+    const result = await User.findByIdAndUpdate(id, newAccount)
 
-const updateAccountByEmail = async (req, res) => {
-    const { Email } = req.params; // Assuming email is passed as a URL parameter
-    const { UserAccount, Password, Role, PhoneNumber, Address } = req.body;
-    
-    try {
-        const account = await Account.findOne({ Email: Email }); // Find account by email instead of id
-        
-        if (!account) {
-            return res.status(404).json({ error: "Account not found" });
-        }
-        
-        if (UserAccount !== undefined) {
-            account.UserAccount = UserAccount;
-        }
-        
-        if (Password) {
-            account.Password = await bcrypt.hash(Password, 10);
-        }
-
-        if (Role !== undefined) {
-            account.Role = Role;
-        }
-
-        if (PhoneNumber !== undefined) {
-            account.PhoneNumber = PhoneNumber;
-        }
-
-        if (Address !== undefined) {
-            account.Address = Address;
-        }
-        
-        await account.save();
-        
-        res.status(200).json(account);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Server error" });
-    }
-};
+    return res.status(200).json({success: true})
+}
 
 const deleteAccount = async (req, res) => {
     const { Email } = req.params;
@@ -177,13 +114,26 @@ const changePassword = async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 };
+
+const replaceAccount = async (req, res, next) => {
+    // enforce new user to old user
+    const { id } = req.value.params
+
+    const newAccount = req.value.body
+
+    const result = await Account.findByIdAndUpdate(id, newAccount)
+
+    return res.status(200).json({success: true})
+}
+
 module.exports = {
     findAll,
-    getAccountDecks,
     getOne,
-    addAccount,
-    updateAccountByEmail,
+    newAccount,
+    updateAccount,
     deleteAccount,
     changePassword,
-    newAccountDeck
-};
+    getAccountDecks,
+    newAccountDeck,
+    replaceAccount
+  };
