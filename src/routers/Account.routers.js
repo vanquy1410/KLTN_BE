@@ -7,6 +7,10 @@ const router = express.Router();
 const { validateBody, validateParam, schemas } = require('../helpers/routerHelper')
 
 
+router.route('/signup').post(validateBody(schemas.authSignUpSchema), accountController.signUp)
+router.route('/signin').post(validateBody(schemas.authSignInSchema), accountController.signIn)
+
+router.route('/secret').get(accountController.secret)
 
 router.route('/')
     .get(accountController.findAll)

@@ -12,19 +12,21 @@ const AccountSchema = new Schema({
     },
     Role: {
         type: String,
-        required: true
+        // required: true
     },
     PhoneNumber: {
         type: String,
-        required: true
+        // required: true
     },
     Address: {
         type: String,
-        required: true
+        // required: true
     },
     Email: {
         type: String,
-        required: true
+        required: true,
+        unique: true,
+        lowercase: true
     },
     decks: [{
         type: Schema.Types.ObjectId,

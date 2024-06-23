@@ -33,13 +33,22 @@ const validateParam = (schema, name) => {
 }
 
 const schemas = {
+    authSignUpSchema: Joi.object().keys({
+        UserAccount: Joi.string().min(3).required(),
+        Password: Joi.string().min(6).required(),
+        Email: Joi.string().email().required()
+    }),
+    authSignInSchema: Joi.object().keys({
+        Email: Joi.string().email().required(),
+        Password: Joi.string().min(6).required()
+    }),
     deckSchema: Joi.object().keys({
         name: Joi.string().min(6).required(),
         description: Joi.string().min(10).required()
     }),
 
     deckOptionalSchema: Joi.object().keys({
-        name: Joi.string().min(6),
+        name: Joi.string().min(5),
         description: Joi.string().min(10),
         owner: Joi.string().regex(/^[0-9a-fA-F]{24}$/)
     }),
@@ -49,7 +58,7 @@ const schemas = {
     }),
 
     newDeckSchema: Joi.object().keys({
-        name: Joi.string().min(6).required(),
+        name: Joi.string().min(5).required(),
         description: Joi.string().min(10).required(),
         owner: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
     }),
@@ -57,9 +66,9 @@ const schemas = {
     accountSchema: Joi.object().keys({
         UserAccount: Joi.string().required(),
         Password: Joi.string().required(),
-        Role: Joi.string().required(),
-        PhoneNumber: Joi.string().required(),
-        Address: Joi.string().required(),
+        Role: Joi.string(),
+        PhoneNumber: Joi.string(),
+        Address: Joi.string(),
         Email: Joi.string().email().required()
     }),
     

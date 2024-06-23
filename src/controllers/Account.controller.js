@@ -2,6 +2,17 @@ const Account = require("../models/Account.models");
 const Deck = require("../models/Deck.models");
 const bcrypt = require("bcrypt");
 
+const {JWT_SECRET} = require('../config/index')
+const JWT = require('jsonwebtoken');
+const encodedToken = (UserAccount) => {
+    return JWT.sign({
+        iss : 'Van Quy',
+        sub : UserAccount,
+        iat: new Date().getTime(),
+        exp: new Date().setDate(new Date().getDate() +3 )
+    }, 'JWT_SECRET')
+}
+
 const Joi = require('@hapi/joi')
 const idSchema = Joi.object().keys({
 id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
@@ -126,6 +137,37 @@ const replaceAccount = async (req, res, next) => {
     return res.status(200).json({success: true})
 }
 
+const secret = async (req, res, next) => {
+    console.log('Called to secret function');
+}
+const signIn = async (req, res, next) => {
+    console.log('Called to signIn function');
+}
+const signUp = async (req, res, next) => {
+    console.log('Called to signUp function');
+    // Assuming req.body is the correct location for UserAccount, Password, Email
+    const {UserAccount, Password, Email} = req.body;
+
+    // Check if there is a user with the same email
+    const foundAccount = await Account.findOne({Email});
+    console.log('found Account', foundAccount);
+
+    if (foundAccount) {
+        // Handle case where account already exists
+        return res.status(400).json({error: { message: 'Account already exists'}});
+    }
+
+    // Create a new account
+    const newAccount = new Account({UserAccount, Password, Email}); // Ensure this is the correct way to create a new instance
+    console.log('new Account', newAccount);
+    await newAccount.save(); // Await the save operation
+
+    //Encode a token 
+    const token = encodedToken(newAccount._id);
+    
+    res.setHeader('Authorization', token)
+    return res.status(200).json({success: true});
+}
 module.exports = {
     findAll,
     getOne,
@@ -135,5 +177,8 @@ module.exports = {
     changePassword,
     getAccountDecks,
     newAccountDeck,
-    replaceAccount
+    replaceAccount,
+    signIn,
+    signUp,
+    secret
   };
