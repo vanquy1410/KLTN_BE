@@ -3,14 +3,16 @@ const Deck = require("../models/Deck.models");
 const bcrypt = require("bcrypt");
 
 const {JWT_SECRET} = require('../config/index')
+console.log("JWT_SECRET: ", process.env.JWT_SECRET);
 const JWT = require('jsonwebtoken');
+
 const encodedToken = (UserAccount) => {
     return JWT.sign({
-        iss : 'Van Quy',
-        sub : UserAccount,
+        iss: 'Van Quy',
+        sub: UserAccount,
         iat: new Date().getTime(),
-        exp: new Date().setDate(new Date().getDate() +3 )
-    }, 'JWT_SECRET')
+        exp: new Date().setDate(new Date().getDate() + 3)
+    }, JWT_SECRET) // Use the JWT_SECRET variable from config
 }
 
 const Joi = require('@hapi/joi')
@@ -138,8 +140,8 @@ const replaceAccount = async (req, res, next) => {
 }
 
 const secret = async (req, res, next) => {
-    console.log('Called to secret function');
-}
+   return res.status(200).json({resource : true})
+};
 const signIn = async (req, res, next) => {
     console.log('Called to signIn function');
 }

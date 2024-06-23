@@ -6,11 +6,13 @@ const router = express.Router();
 
 const { validateBody, validateParam, schemas } = require('../helpers/routerHelper')
 
+const passport = require('passport')
+const passportConfig = require('../middlewares/passport')
 
 router.route('/signup').post(validateBody(schemas.authSignUpSchema), accountController.signUp)
 router.route('/signin').post(validateBody(schemas.authSignInSchema), accountController.signIn)
 
-router.route('/secret').get(accountController.secret)
+router.route('/secret').get(passport.authenticate('jwt', { session : false}),accountController.secret)
 
 router.route('/')
     .get(accountController.findAll)
