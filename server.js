@@ -12,6 +12,7 @@ const server = http.createServer(app);
 const ip = process.env.IP;
 const port = process.env.PORT;
 const mongodb = process.env.MONGODB_URI;
+const passport = require('passport');
 
 app.use(express.json());
 // Import the router
@@ -23,6 +24,7 @@ const deckRoute = require("./src/routers/Deck.routers");
 app.use("/api/account", accountRoute);
 app.use("/api/event", eventRoute);
 app.use("/api/deck", deckRoute);
+app.use(passport.initialize());
 
 // Database connection
 mongoose

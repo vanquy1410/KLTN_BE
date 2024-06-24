@@ -8,9 +8,17 @@ const { validateBody, validateParam, schemas } = require('../helpers/routerHelpe
 
 const passport = require('passport')
 const passportConfig = require('../middlewares/passport')
+// router.use(passport.initialize());
+
 
 router.route('/signup').post(validateBody(schemas.authSignUpSchema), accountController.signUp)
-router.route('/signin').post(validateBody(schemas.authSignInSchema), accountController.signIn)
+// router.route('/signin').post(validateBody(schemas.authSignInSchema), passport.authenticate('local', { session : false }), accountController.signIn)
+
+router.route('/signin').post(
+    validateBody(schemas.authSignInSchema), 
+    passport.authenticate('local', { session : false }), 
+    accountController.signIn
+);
 
 router.route('/secret').get(passport.authenticate('jwt', { session : false}),accountController.secret)
 
