@@ -142,9 +142,38 @@ const replaceAccount = async (req, res, next) => {
 const secret = async (req, res, next) => {
    return res.status(200).json({resource : true})
 };
+
+
+// const signIn = async (req, res, next) => {
+//     //Assign token
+//     const token = encodedToken(req.account_id)
+//     console.log('Token', token);
+
+//     res.setHeader('Authorization', token)
+//     return res.status(200).json({success: true})
+// }
+
 const signIn = async (req, res, next) => {
-    console.log('Called to signIn function');
-}
+    try {
+        const account = req.user;
+
+        if (!account) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const token = encodedToken(account._id);
+
+        // Thiết lập header Authorization trong phản hồi
+        res.setHeader('Authorization', `Bearer ${token}`);
+
+        // Trả về phản hồi thành công với token
+        return res.status(200).json({ success: true, token });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
 const signUp = async (req, res, next) => {
     console.log('Called to signUp function');
     // Assuming req.body is the correct location for UserAccount, Password, Email
