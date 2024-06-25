@@ -8,6 +8,9 @@ const { validateBody, validateParam, schemas } = require('../helpers/routerHelpe
 
 const passport = require('passport')
 const passportConfig = require('../middlewares/passport')
+
+//
+router.route('/auth/google').post(passport.authenticate('google-plus-token', {session: false}), accountController.authGoogle)
 // router.use(passport.initialize());
 
 
