@@ -20,6 +20,26 @@ const idSchema = Joi.object().keys({
 id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
 })
 
+const authGoogle = async (req, res) => {
+    try {
+        const account = req.user;
+
+        if (!account) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const token = encodedToken(account._id);
+
+        // Thiết lập header Authorization trong phản hồi
+        res.setHeader('Authorization', `Bearer ${token}`);
+
+        // Trả về phản hồi thành công với token
+        return res.status(200).json({ success: true, token });
+    } catch (error) {
+        next(error);
+    }
+}
+
 const findAll = async (req, res) => {
     try {
         const accounts = await Account.find();
@@ -146,7 +166,7 @@ const secret = async (req, res, next) => {
 
 // const signIn = async (req, res, next) => {
 //     //Assign token
-//     const token = encodedToken(req.account_id)
+//     const token = encodedToken(req.account._id)
 //     console.log('Token', token);
 
 //     res.setHeader('Authorization', token)
@@ -200,6 +220,7 @@ const signUp = async (req, res, next) => {
     return res.status(200).json({success: true});
 }
 module.exports = {
+    authGoogle,
     findAll,
     getOne,
     newAccount,

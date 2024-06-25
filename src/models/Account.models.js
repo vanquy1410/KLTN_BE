@@ -9,7 +9,20 @@ const AccountSchema = new Schema({
     },
     Password: {
         type: String,
-        required: true
+        // required: true
+    },
+    authGoogleID:{
+        type: String,
+        default: null
+    },
+    authFacebookID:{
+        type: String,
+        default: null
+    },
+    authType: {
+        type: String,
+        enum: ['local', 'google', 'facebook'],
+        default: 'local',
     },
     Role: {
         type: String,
@@ -38,12 +51,15 @@ const AccountSchema = new Schema({
 // mã hoá pass của đăng ký
 AccountSchema.pre('save', async function(next){
     try {
-        if (!this.isModified('Password')) {
-            return next(); // Skip if password is not modified
-        }
+       if(this.authType !== 'local') next()
 
+        //Generate a salt 
         const salt = await bcrypt.genSalt(10);
+
+        //Generate a password hash (salt + hash)
         const passwordHashed = await bcrypt.hash(this.Password, salt);
+
+        //Re-assign password hashed
         this.Password = passwordHashed;
 
         next();

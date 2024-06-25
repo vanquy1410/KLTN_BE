@@ -1,76 +1,76 @@
-const passport = require('passport')
-const JwtStrategy = require('passport-jwt').Strategy
-const { ExtractJwt } = require('passport-jwt')
-const { JWT_SECRET } = require('../config')
-const LocalStrategy = require('passport-local').Strategy
-const jwt = require('jsonwebtoken');
+const passport = require('passport');
+const JwtStrategy = require('passport-jwt').Strategy;
+const { ExtractJwt } = require('passport-jwt');
+const LocalStrategy = require('passport-local').Strategy;
+const GooglePlusTokenStrategy = require('passport-google-plus-token');
+require('dotenv').config();
 
-
-
-const Account = require('../models/Account.models')
+const Account = require('../models/Account.models');
 
 passport.use(new JwtStrategy({
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken('Authorization'),
-    secretOrKey: JWT_SECRET
-}, async(payload, done) => {
-    try{
-        const account = await Account.findById(payload.sub)
-        if(!account) return done(null, false)
-        
-        done(null, account)
+    secretOrKey: process.env.JWT_SECRET
+}, async (payload, done) => {
+    try {
+        const account = await Account.findById(payload.sub);
+        if (!account) return done(null, false);
 
-    } catch (error){
-        done(error,false)
+        done(null, account);
+    } catch (error) {
+        done(error, false);
     }
-}))
+}));
 
-//Passport Local
-// passport.use(new LocalStrategy({
-//     usernameField : 'Email'
-// }, async (Email, Password, done) => {
-//    try{
-//     const account = await Account.findOne({ Email })
-   
+passport.use(new GooglePlusTokenStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+}, async (accessToken, refreshToken, profile, done) => {
+    try {
+        let account = await Account.findOne({ authGoogleID: profile.id, authType: "google" });
+        
+        if (account) return done(null, account);
 
-//     if (!account) return done(null, false)
+        account = await Account.findOne({ Email: profile.emails[0].value });
 
-//     const isCorrectPassword = await account.isValidPassword(Password)
-//     console.log(isCorrectPassword)
+        if (account) {
+            account.authGoogleID = profile.id;
+            account.authType = 'google';
+            await account.save();
+            return done(null, account);
+        }
 
-//     if(!isCorrectPassword) return done(null, false)
-
-//     done(null, account)
-//     }catch (error) {
-//         done(error, false);
-//     }
-// }))
+        const newAccount = new Account({
+            authType: "google",
+            authGoogleID: profile.id,
+            Email: profile.emails[0].value,
+        });
+        
+        await newAccount.save();
+        
+        done(null, newAccount);
+    } catch (error) {
+        console.log(error);
+        done(error, false);
+    }
+}));
 
 passport.use(new LocalStrategy({
     usernameField: 'Email',
     passwordField: 'Password'
 }, async (Email, Password, done) => {
-
-    console.log('gdhsag');
     try {
         const account = await Account.findOne({ Email });
 
-        if (!account) {
-            console.log('Email not found:', Email);
-            return done(null, false, { message: 'Email not found' });
-        }
+        if (!account) return done(null, false);
 
         const isCorrectPassword = await account.isValidPassword(Password);
 
-        if (!isCorrectPassword) {
-            console.log('Incorrect password for Email:', Email);
-            return done(null, false, { message: 'Incorrect password' });
-        }
+        if (!isCorrectPassword) return done(null, false);
 
-        console.log('User authenticated:', Email);
-        return done(null, account);
+        done(null, account);
     } catch (error) {
-        console.error('Error in LocalStrategy:', error);
-        return done(error, false);
+        done(error, false);
     }
 }));
 
+module.exports = passport;
