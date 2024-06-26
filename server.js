@@ -14,6 +14,9 @@ const port = process.env.PORT;
 const mongodb = process.env.MONGODB_URI;
 const passport = require('passport');
 
+
+app.use(cors());
+
 app.use(express.json());
 // Import the router
 const accountRoute = require("./src/routers/Account.routers");
@@ -25,6 +28,13 @@ app.use("/api/account", accountRoute);
 app.use("/api/event", eventRoute);
 app.use("/api/deck", deckRoute);
 app.use(passport.initialize());
+
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+
+app.use(cors(corsOptions));
 
 // Database connection
 mongoose
