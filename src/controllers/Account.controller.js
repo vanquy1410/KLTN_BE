@@ -58,6 +58,13 @@ const getOne = async (req, res) => {
 
     return res.status(200).json({ account });
 };
+const getOneByEmail = async (req, res) => {
+    const { Email } = req.params; // Corrected line
+
+    const account = await Account.findOne({ Email: Email });
+
+    return res.status(200).json({ account });
+};
 
 const getAccountDecks = async (req, res, next) => {
     const { id } = req.params; // Correctly access params directly from req
@@ -223,6 +230,7 @@ module.exports = {
     authGoogle,
     findAll,
     getOne,
+    getOneByEmail,
     newAccount,
     updateAccount,
     deleteAccount,

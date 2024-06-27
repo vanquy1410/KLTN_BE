@@ -34,6 +34,8 @@ router.route('/:id')
     .put(validateParam(schemas.idSchema, 'id'), validateBody(schemas.accountSchema), accountController.replaceAccount)
     .patch(validateParam(schemas.idSchema, 'id'), validateBody(schemas.accountOptionalSchema), accountController.updateAccount)
 
+router.route('/getOneByEmail/:Email')
+    .get(accountController.getOneByEmail);
 // Route to update an account by Email
 router.put("/updateAccount/:Email", accountController.updateAccount);
 
